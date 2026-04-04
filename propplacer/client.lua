@@ -96,12 +96,17 @@ local function propPlacer(model, forceGround, allowedMaterials, maxDistance)
 
                 if IsControlJustPressed(0, 38) or IsDisabledControlJustPressed(0, 38) then -- e
                     if #(GetEntityCoords(placingEntity, false) - GetEntityCoords(cache.ped, false)) <= maxDistance then
-                        -- Make sure its on the ground before we grab its final coords
                         if forceGround then
-                            PlaceObjectOnGroundProperly(placingEntity)
+                            local foundGround, groundZ = GetGroundZFor_3dCoord(endCoords.x, endCoords.y, endCoords.z + 1.0, false)
+                            if not foundGround then
+                                lib.print.error("Unable to find ground z for prop placer on model", model, " using raycast z instead", endCoords.z)
+                            end
+                            
+                            finalCoords = foundGround and vector3(endCoords.x, endCoords.y, groundZ) or endCoords
+                        else
+                            finalCoords = endCoords
                         end
-                        
-                        finalCoords = GetEntityCoords(placingEntity, false)
+
                         finalRotation = GetEntityHeading(placingEntity)
                         isPlacingProp = false
                     else
@@ -137,6 +142,8 @@ local function propPlacer(model, forceGround, allowedMaterials, maxDistance)
                 PlaceObjectOnGroundProperly(placingEntity)
                 SetEntityHeading(placingEntity, heading)
             end
+            
+            lib.print.info("prop data", forceGround, endCoords)
         end
 
         Wait(0)
